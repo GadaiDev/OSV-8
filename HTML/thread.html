@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSV</title>
+    <style>
+        body {
+            padding: 30px;
+            background-color: rgb(34, 34, 104);
+            font-family:'メイリオ', 'Meiryo','ＭＳ ゴシック','Hiragino Kaku Gothic ProN','ヒラギノ角ゴ ProN W3',sans-serif;
+        }
+        .container {
+            padding:10px;
+            background-color: #efefef;
+            border: 2px solid black;
+            box-shadow: 6px 5px 0px black;
+        }
+        .center {
+            text-align: center;
+        }
+        .k_name {
+            color:green;
+        }
+        .t_title {
+            color:red;
+        }
+        .k_img {
+            width: 50%;
+            height:auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/">■掲示板に戻る</a>
+        <a href="/fupload" target="_blank">■ファイルアップロード</a>
+    </div>
+    <div id="thread" class="container">
+    </div>
+    <div class="container">
+        <a href="/">■掲示板に戻る</a>
+        <a href="/fupload" target="_blank">■ファイルアップロード</a>
+        <hr>
+        お名前:<input id="name" value="{{ Name }}"><br>
+        <textarea style="width: 100%; height:300px;" id="text"></textarea>
+        <button onclick="send()" style="width: 100%; height:150px;"><h2>書き込み</h2></button>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        setInterval(()=>{
+            fetch("/api/get?thrID={{ thrid }}")
+            .then((response) => {
+                return response.text()
+            })
+            .then((text) => {
+                document.getElementById("thread").innerHTML=text;
+            })
+        },100)
+
+        function send() {
+            $.ajax({
+                url: "/api/post",
+                type: "POST",
+                data: {
+                    "name": $("#name").val(),
+                    "text": $("#text").val(),
+                    "thrID": "{{ thrid }}"
+                },
+                dataType: "json",
+            });
+            $("#text").val("");
+        }
+    </script>
+</body>
+</html>

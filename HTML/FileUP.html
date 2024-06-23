@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OSV</title>
+    <style>
+        body {
+            padding: 30px;
+            background-color: rgb(34, 34, 104);
+            font-family:'メイリオ', 'Meiryo','ＭＳ ゴシック','Hiragino Kaku Gothic ProN','ヒラギノ角ゴ ProN W3',sans-serif;
+        }
+        .container {
+            padding:10px;
+            background-color: #efefef;
+            border: 2px solid black;
+            box-shadow: 6px 5px 0px black;
+        }
+        .center {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container center">
+        <h1>ファイルアップロード</h1>
+        <p>ファイルアップロードできますね</p>
+        <form action="/api/FU" method="post" enctype="multipart/form-data">
+            <input type="submit" value="アップロード">
+            <input type="file" name="file">
+        </form>
+    </div>
+    
+</body>
+</html>
