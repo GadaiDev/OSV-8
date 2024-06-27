@@ -1,23 +1,41 @@
 from flask import Flask, request, session, redirect, send_file
-
+from flask_cors import CORS
 from uuid import uuid4
 from json import load, dump
-from random import choices
+from random import choices, randint
 from datetime import datetime
 
 import glob
 import re
 
+
 def f_open(fname):
-    return open(fname,"r").read()
+    return open(fname,"r", encoding="utf-8").read()
 
 def text_replace(text:str):
     text = text.replace("\n","<br>")
     text = re.sub(r"!Img:\"(.+)\"",r"<img src='\1' class='k_img'>", text)
     return text
 
+
+def post_replace(text:str, name:str, id_, thr):
+    for i in range(text.count("!Random")):
+        text = text.replace("!Random",f"<b class='k_spc1'>{str(randint(0,100))}</b>")
+
+    if thr == "root":
+        ich = text
+    else:
+        ich = thr["dat"][0]["text"]
+
+    if "!無個性" in ich:
+        name = "OSVの名無しさん"
+        id_ = "0000"
+
+    return text, name, id_
+
 app = Flask(__name__)
 app.secret_key = "yajusenpai"
+CORS(app)
 
 @app.route("/")
 def page_index():
@@ -28,7 +46,8 @@ def page_index():
     thrl = []
     for i in glob.glob("./BBS/*.json"):
         thr = load(open(i, "r", encoding="utf-8"))
-        thrl.append(f"        <a href='/thread/{i.replace('./BBS/','').replace('.json','')}'>{thr['title']}({len(thr['dat'])})</a>")
+        tid = i.replace('./BBS\\','').replace('.json','')
+        thrl.append(f"        <a href='/thread/{tid}'>{thr['title']}({len(thr['dat'])})</a><a href='/thread/{tid}?Proxy'>[P]</a>")
     html = html.replace("{{ Name }}",session.get("Name",""))
     return html.replace("{{ thi }}", "<br>\n".join(thrl))
 
@@ -37,8 +56,15 @@ def page_index():
 def page_t(thrid):
     if session.get("ID") is None:
         session["ID"] = "".join(choices("1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ", k=4))
+
+    thr = load(open(f"./BBS/"+thrid+".json", "r", encoding="utf-8"))
     
-    html = f_open("./HTML/thread.html")
+    if request.args.get("Proxy") == None:
+        html = f_open("./HTML/thread.html")
+    else:
+        html = f_open("./HTML/threadP.html")
+        html = html.replace("{{ ttl }}", thr["title"])
+
     html = html.replace("{{ thrid }}", thrid)
     html = html.replace("{{ Name }}",session.get("Name",""))
     return html
@@ -60,6 +86,9 @@ def api_post_thr():
 
 
     thr = load(open(f"./BBS/{thrid}.json", "r", encoding="utf-8"))
+
+    text, name, id_ = post_replace(text, name, id_, thr)
+
     thr["dat"].append(
         {
             "name": name,
@@ -78,9 +107,21 @@ def api_get_thr():
     out = []
     
     for i, d in enumerate(thr["dat"]):
-        out.append(f"<dl><dt>{i + 1}:<b class='k_name'>{d['name']}</b>, {d['date']}, ID:{d['id']}</dt><dd>{text_replace(d['text'])}</dd></dl>")
+        if thr["dat"][0]["id"] == d["id"]:
+            out.append(f"<dl><dt><a onclick='addanker({i + 1})'>{i + 1}</a>:<b class='k_name'>{d['name']}</b>, {d['date']}, <b class='t_title'>ID:{d['id']}</b></dt><dd>{text_replace(d['text'])}</dd></dl>")
+        else:
+            out.append(f"<dl><dt><a onclick='addanker({i + 1})'>{i + 1}</a>:<b class='k_name'>{d['name']}</b>, {d['date']}, ID:{d['id']}</dt><dd>{text_replace(d['text'])}</dd></dl>")
     
     return f"<h1 class='t_title'>{thr['title']}</h1>\n"+"\n".join(out)
+
+@app.route("/api/gtitle")
+def api_get_thr_title():
+    thrid = request.args.get("thrID","").replace("/","").replace("..","")
+    thr = load(open(f"./BBS/{thrid}.json", "r", encoding="utf-8"))
+
+    return thr['title']
+
+
 
 @app.route("/api/post-thread", methods=["POST"])
 def api_post_thr_mk():
@@ -99,6 +140,8 @@ def api_post_thr_mk():
 
     id_ = session.get("ID","???")
 
+    text, name, id_ = post_replace(text, name, id_, "root")
+
     thr = {}
     thr["title"] = title
     thr["dat"] = [
@@ -116,7 +159,7 @@ def api_post_thr_mk():
 def page_fupload():
     return f_open("./HTML/FileUP.html")
 
-@app.route("/api/FU/", methods=["POST"])
+@app.route("/api/FU", methods=["POST"])
 def api_FileUpload():
     file = request.files["file"]
     fname = file.filename.split(".")

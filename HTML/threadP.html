@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="titles">OSV</title>
+    <title id="titles">{{ ttl }} - OSV</title>
     <style>
         body {
             padding: 30px;
@@ -52,18 +52,12 @@
         <button onclick="send()" style="width: 100%; height:150px;"><h2>書き込み</h2></button>
         <audio src="http://g2channel.dynv6.net/File/356512a6-24dd-4bac-b98d-13fe4e9bde61.mp3" id="sound"></audio>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script>
         const sound_ = document.getElementById("sound");
-        var title = $.get("http://g2channel.dynv6.net/api/gtitle?thrID={{ thrid }}")
-        title.done((res) => {
-            return res
-        })
-        .done((text)=>{
-            document.getElementById("titles").innerHTML=text+" - OSV"
-        });
         setInterval(()=>{
-            fetch("/api/get?thrID={{ thrid }}")
+            fetch("http://www.ipv6proxy.net/go.php?u=http%3A%2F%2Fg2channel.dynv6.net%2Fapi%2Fget%3FthrID%3D{{ thrid }}&b=1")
             .then((response) => {
                 return response.text()
             })
@@ -73,26 +67,19 @@
                     sound_.currentTime=0;
                     sound_.play();
                     document.getElementById("thread").innerHTML=text;
-
                 }
             })
-            
-        },100)
+        },500)
 
         function send() {
-            $.ajax({
-                url: "/api/post",
-                type: "POST",
-                data: {
+            $.post("http://www.ipv6proxy.net/go.php?u=http%3A%2F%2Fg2channel.dynv6.net%2Fapi%2Fpost%3FthrID%3D{{ thrid }}&b=1", {
                     "name": $("#name").val(),
                     "text": $("#text").val(),
                     "thrID": "{{ thrid }}"
-                },
-                dataType: "json",
-            });
+                });
             $("#text").val("");
         }
-        
+
         function addanker(c) {
             document.getElementById("text").value += ">>"+c+"\n"
         }
